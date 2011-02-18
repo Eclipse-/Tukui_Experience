@@ -1,0 +1,8 @@
+﻿## Interface: 40000
+## Author: Eclípsé
+## Version: 1.00
+## Title: |cffe45050Tukui|r Experience
+## Notes: Minimalistic experience and reputation bar replacement.
+## RequiredDeps: Tukui
+
+core.lua
