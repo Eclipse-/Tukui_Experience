@@ -43,7 +43,7 @@ if Config.shadow then
 end
 
 local esb = CreateFrame("StatusBar", nil, f)
-esb:SetFrameLevel(f:GetFrameLevel() + 2)
+esb:SetFrameLevel(f:GetFrameLevel())
 esb:Point("TOPLEFT", 2, -2)
 esb:Point("BOTTOMRIGHT", -2, 2)
 esb:SetStatusBarTexture(C["media"].blank)
@@ -52,7 +52,7 @@ CreateBorder(esb)
 esb:Hide()
 
 local resb = CreateFrame("StatusBar", nil, esb)
-resb:SetFrameLevel(esb:GetFrameLevel() - 1)
+resb:SetFrameLevel(esb:GetFrameLevel())
 resb:SetAllPoints()
 resb:SetStatusBarTexture(C["media"].blank)
 resb:SetStatusBarColor(.3, .3, .8, .4)
