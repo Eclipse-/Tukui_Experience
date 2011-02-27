@@ -11,6 +11,18 @@ local Config = {
 	style = "MONOCHROMEOUTLINE",
 	alignment = { "CENTER", 0, 1 },
 	shadow = true,
+	texture = unpack(T.Textures.statusBars) or C["media"].blank,
+	
+	colors = {
+		{ .67, 0, 0 }, 		-- Hated
+		{ .72, 0, 0 }, 		-- Hostile
+		{ .7, .3, .3 }, 	-- Unfriendly
+		{ .83, .63, 0 }, 	-- Neutral
+		{ .33, .7, .3 }, 	-- Friendly
+		{ .33, .7, .3 }, 	-- Honored
+		{ .33, .7, .3 }, 	-- Revered
+		{ .05, .79, .49 }, 	-- Exalted
+	},
 }
 
 local function CreateBorder(f)
@@ -27,77 +39,65 @@ local function CreateBorder(f)
 	f.b = b
 end
 
-local f = CreateFrame("Button", nil, UIParent)
-f:Height(19)
-f:Point("TOPLEFT", TukuiMinimapStatsLeft or TukuiMinimap, "BOTTOMLEFT", 0, -3)
-f:Point("TOPRIGHT", TukuiMinimapStatsRight or TukuiMinimap, "BOTTOMRIGHT", 0, -3)
-f:SetFrameLevel(1)
-f:SetFrameStrata("BACKGROUND")
-f:SetBackdrop({
+local addon = CreateFrame("Button", "TukuiExperience", UIParent)
+addon:Height(19)
+addon:Point("TOPLEFT", TukuiMinimapStatsLeft or TukuiMinimap, "BOTTOMLEFT", 0, -3)
+addon:Point("TOPRIGHT", TukuiMinimapStatsRight or TukuiMinimap, "BOTTOMRIGHT", 0, -3)
+addon:SetFrameLevel(1)
+addon:SetFrameStrata("BACKGROUND")
+addon:SetBackdrop({
 	bgFile = C["media"].blank,
 })
-f:SetBackdropColor(unpack(C["media"].bordercolor))
-CreateBorder(f)
+addon:SetBackdropColor(unpack(C["media"].bordercolor))
+CreateBorder(addon)
 if Config.shadow then
-	f:CreateShadow("Default")
+	addon:CreateShadow("Default")
 end
 
-local esb = CreateFrame("StatusBar", nil, f)
-esb:SetFrameLevel(f:GetFrameLevel())
-esb:Point("TOPLEFT", 2, -2)
-esb:Point("BOTTOMRIGHT", -2, 2)
-esb:SetStatusBarTexture(C["media"].blank)
-esb:SetStatusBarColor(.3, .3, .8)
-CreateBorder(esb)
-esb:Hide()
+local expBar = CreateFrame("StatusBar", nil, addon)
+expBar:SetFrameLevel(addon:GetFrameLevel())
+expBar:Point("TOPLEFT", 2, -2)
+expBar:Point("BOTTOMRIGHT", -2, 2)
+expBar:SetStatusBarTexture(Config.texture)
+expBar:SetStatusBarColor(.3, .3, .8)
+CreateBorder(expBar)
+expBar:Hide()
 
-local resb = CreateFrame("StatusBar", nil, esb)
-resb:SetFrameLevel(esb:GetFrameLevel())
-resb:SetAllPoints()
-resb:SetStatusBarTexture(C["media"].blank)
-resb:SetStatusBarColor(.3, .3, .8, .4)
-CreateBorder(resb)
-resb:Hide()
+local restedBar = CreateFrame("StatusBar", nil, expBar)
+restedBar:SetFrameLevel(expBar:GetFrameLevel())
+restedBar:SetAllPoints()
+restedBar:SetStatusBarTexture(Config.texture)
+restedBar:SetStatusBarColor(.3, .3, .8, .4)
+CreateBorder(restedBar)
+restedBar:Hide()
 
-local ebg = esb:CreateTexture(nil, 'BORDER')
-ebg:SetAllPoints()
-ebg:SetTexture(C["media"].blank)
-ebg:SetVertexColor(.05, .05, .05)	
+local expBG = expBar:CreateTexture(nil, 'BORDER')
+expBG:SetAllPoints()
+expBG:SetTexture(C["media"].blank)
+expBG:SetVertexColor(.05, .05, .05)	
 
-local et = esb:CreateFontString(nil, "OVERLAY")
-et:SetFont(Config.font, Config.size, Config.style)
-et:SetPoint(unpack(Config.alignment))
+local expText = expBar:CreateFontString(nil, "OVERLAY")
+expText:SetFont(Config.font, Config.size, Config.style)
+expText:SetPoint(unpack(Config.alignment))
 
-local rsb = CreateFrame("StatusBar", nil, f)
-rsb:Point("TOPLEFT", 2, -2)
-rsb:Point("BOTTOMRIGHT", -2, 2)
-rsb:SetStatusBarTexture(C["media"].blank)
-CreateBorder(rsb)
-rsb:Hide()
+local repBar = CreateFrame("StatusBar", nil, addon)
+repBar:Point("TOPLEFT", 2, -2)
+repBar:Point("BOTTOMRIGHT", -2, 2)
+repBar:SetStatusBarTexture(Config.texture)
+CreateBorder(repBar)
+repBar:Hide()
 
-local rbg = rsb:CreateTexture(nil, 'BORDER')
-rbg:SetAllPoints()
-rbg:SetTexture(C["media"].blank)
-rbg:SetVertexColor(.05, .05, .05)	
+local repBG = repBar:CreateTexture(nil, 'BORDER')
+repBG:SetAllPoints()
+repBG:SetTexture(C["media"].blank)
+repBG:SetVertexColor(.05, .05, .05)	
 
-local rt = rsb:CreateFontString(nil, "OVERLAY")
-rt:SetFont(Config.font, Config.size, Config.style)
-rt:SetPoint(unpack(Config.alignment))
+local repText = repBar:CreateFontString(nil, "OVERLAY")
+repText:SetFont(Config.font, Config.size, Config.style)
+repText:SetPoint(unpack(Config.alignment))
 
-local colors = {
-	{ r = .67, g = 0, b = 0 }, -- Hated
-	{ r = .72, g = 0, b = 0 }, -- Hostile
-	{ r = .7, g = .3, b = .3 }, -- Unfriendly
-	{ r = .83, g = .63, b = 0 }, -- Neutral
-	{ r = .33, g = .7, b = .3 }, -- Friendly
-	{ r = .33, g = .7, b = .3 }, -- Honored
-	{ r = .33, g = .7, b = .3 }, -- Revered
-	{ r = .05, g = .79, b = .49 }, -- Exalted
-}
-
-local function experience()
+local function Update()
 	local _, id, min, max, value = GetWatchedFactionInfo()
-	local colors = colors[id]
 		
 	local rMax = (max - min)
 	local rGained = (value - min)
@@ -107,58 +107,58 @@ local function experience()
 	local perNeed = format("%.1f%%", (rNeed / rMax) * 100)
 
 	if UnitLevel("player") == MAX_PLAYER_LEVEL then
-		esb:Hide()
+		expBar:Hide()
 
-		rsb:Show()
-		rsb:ClearAllPoints()
-		rsb:Point("TOPLEFT", 2, -2)
-		rsb:Point("BOTTOMRIGHT", -2, 2)
+		repBar:Show()
+		repBar:ClearAllPoints()
+		repBar:Point("TOPLEFT", 2, -2)
+		repBar:Point("BOTTOMRIGHT", -2, 2)
 				
-		rsb:SetMinMaxValues(min, max)
-		rsb:SetValue(value)
+		repBar:SetMinMaxValues(min, max)
+		repBar:SetValue(value)
 	
 		if Config.tFormat == 1 then
-			rt:SetText(perGain)
+			repText:SetText(perGain)
 		elseif Config.tFormat == 2 then
-			rt:SetText(rGained .. " / " .. rMax)
+			repText:SetText(rGained .. " / " .. rMax)
 		elseif Config.tFormat == 3 then
-			rt:SetText(perGain .. " " .. "(" .. rGained .. "/" .. rMax ..")")
+			repText:SetText(perGain .. " " .. "(" .. rGained .. "/" .. rMax ..")")
 		elseif Config.tFormat == 4 then
-			rt:SetText(rGained .. " / " .. rMax .. " " .. "(" .. perGain .. ")")
+			repText:SetText(rGained .. " / " .. rMax .. " " .. "(" .. perGain .. ")")
 		end
 	
 		if id > 0 then
-			rsb:SetStatusBarColor(colors.r, colors.g, colors.b)
-			f:Show()
+			repBar:SetStatusBarColor(unpack(Config.colors[id]))
+			addon:Show()
 		else
-			f:Hide()
+			addon:Hide()
 		end
 
 	else
-		esb:Show()
+		expBar:Show()
 
 		if id > 0 then
-			esb:ClearAllPoints()
-			esb:Point("TOPLEFT", 2, -2)
-			esb:Point("TOPRIGHT", -2, -2)
-			esb:Height(11)
+			expBar:ClearAllPoints()
+			expBar:Point("TOPLEFT", 2, -2)
+			expBar:Point("TOPRIGHT", -2, -2)
+			expBar:Height(11)
 			
-			rsb:Show()
-			rsb:ClearAllPoints()
-			rsb:Point("TOPLEFT", esb, "BOTTOMLEFT", 0, -3)
-			rsb:Point("TOPRIGHT", esb, "BOTTOMRIGHT", 0, -3)
-			rsb:Height(1)
+			repBar:Show()
+			repBar:ClearAllPoints()
+			repBar:Point("TOPLEFT", expBar, "BOTTOMLEFT", 0, -3)
+			repBar:Point("TOPRIGHT", expBar, "BOTTOMRIGHT", 0, -3)
+			repBar:Height(1)
 			
-			rsb:SetMinMaxValues(min, max)
-			rsb:SetValue(value)
+			repBar:SetMinMaxValues(min, max)
+			repBar:SetValue(value)
 
-			rsb:SetStatusBarColor(colors.r, colors.g, colors.b)
+			repBar:SetStatusBarColor(unpack(Config.colors[id]))
 		else
-			esb:ClearAllPoints()
-			esb:Point("TOPLEFT", 2, -2)
-			esb:Point("BOTTOMRIGHT", -2, 2)
+			expBar:ClearAllPoints()
+			expBar:Point("TOPLEFT", 2, -2)
+			expBar:Point("BOTTOMRIGHT", -2, 2)
 			
-			rsb:Hide()
+			repBar:Hide()
 		end
 		
 		local eCurrent = UnitXP("player")
@@ -168,33 +168,72 @@ local function experience()
 		local perGain = format("%.1f%%", (eCurrent / eMax) * 100)
 		local perNeed = format("%.1f%%", ((eMax - eCurrent) / eMax) * 100)
 
-		esb:SetMinMaxValues(0, eMax)
-		esb:SetValue(eCurrent)
+		expBar:SetMinMaxValues(0, eMax)
+		expBar:SetValue(eCurrent)
 		
 		if eRested and eRested > 0 then
-			resb:Show()
-			resb:SetMinMaxValues(0, eMax)
-			resb:SetValue(eCurrent + eRested)
+			restedBar:Show()
+			restedBar:SetMinMaxValues(0, eMax)
+			restedBar:SetValue(eCurrent + eRested)
 		else
-			resb:Hide()
+			restedBar:Hide()
 		end
 		
-		et:SetText(perGain)
+		expText:SetText(perGain)
 	end
 end
-f:SetScript("OnEvent", experience)
-f:RegisterEvent("PLAYER_ENTERING_WORLD")
-f:RegisterEvent("PLAYER_XP_UPDATE")
-f:RegisterEvent("PLAYER_LEVEL_UP")
-f:RegisterEvent("UPDATE_EXHAUSTION")
-f:RegisterEvent("PLAYER_UPDATE_RESTING")
-f:RegisterEvent("UPDATE_FACTION")
+addon:SetScript("OnEvent", Update)
+addon:RegisterEvent("PLAYER_ENTERING_WORLD")
+addon:RegisterEvent("PLAYER_XP_UPDATE")
+addon:RegisterEvent("PLAYER_LEVEL_UP")
+addon:RegisterEvent("UPDATE_EXHAUSTION")
+addon:RegisterEvent("PLAYER_UPDATE_RESTING")
+addon:RegisterEvent("UPDATE_FACTION")
 
+local function Tooltip()
+	local name, id, min, max, value = GetWatchedFactionInfo()
+		
+	local rMax = (max - min)
+	local rGained = (value - min)
+	local rNeed = (max - value)
+		
+	local perGain = format("%.1f%%", (rGained / rMax) * 100)
+	local perNeed = format("%.1f%%", (rNeed / rMax) * 100)
+	
+	GameTooltip:SetOwner(TukuiInfoLeft, "ANCHOR_TOPLEFT", 0, select(4, T.DataTextTooltipAnchor(expText)))
 
+	if UnitLevel("player") < MAX_PLAYER_LEVEL then
+		local eCurrent = UnitXP("player")
+		local eMax = UnitXPMax("player")
+		local eRested = GetXPExhaustion()
 
--- local function tt()
-	--
--- end
+		local perGain = format("%.1f%%", (eCurrent / eMax) * 100)
+		local perNeed = format("%.1f%%", ((eMax - eCurrent) / eMax) * 100)
 
--- f:SetScript('OnLeave', GameTooltip_Hide)
--- f:SetScript('OnEnter', tt)	
+		GameTooltip:AddLine(T.cStart .. "Experience:")
+		GameTooltip:AddDoubleLine("Gained: ", eCurrent.." ("..perGain..")", 1, 1, 1, 1, 1, 1)
+		GameTooltip:AddDoubleLine("Needed: ", eMax - eCurrent.." ("..perNeed..")", 1, 1, 1, .8, .3, .3)
+		GameTooltip:AddDoubleLine("Total: ", eMax, 1, 1, 1, 1, 1, 1)
+		if eRested and eRested > 0 then
+			GameTooltip:AddDoubleLine("Rested:", eRested.." ("..format("%.f%%", eRested / eMax * 100)..")", 1, 1, 1, .3, .3, .8)
+		end
+		if id > 0 then
+			GameTooltip:AddLine' '
+		end
+	end
+	
+	if id > 0 then
+		GameTooltip:AddLine(T.cStart .. "Reputation:")
+		GameTooltip:AddDoubleLine("Faction: ", name, 1, 1, 1, 1, 1, 1)
+		GameTooltip:AddDoubleLine("Standing: ", _G['FACTION_STANDING_LABEL'..id], 1, 1, 1, unpack(Config.colors[id]))
+		GameTooltip:AddDoubleLine("Gained: ", value - min.." ("..perGain..")", 1, 1, 1, 1, 1, 1)
+		GameTooltip:AddDoubleLine("Needed: ", max - value.." ("..perNeed..")", 1, 1, 1, .8, .3, .3)
+		GameTooltip:AddDoubleLine("Total: ", max - min, 1, 1, 1, 1, 1, 1)
+	end
+	
+	GameTooltip:Show()
+end
+addon:SetScript('OnLeave', GameTooltip_Hide)
+addon:SetScript('OnEnter', Tooltip)	
+
+addon:SetScript("OnMouseDown", function() ToggleCharacter("ReputationFrame") end)
