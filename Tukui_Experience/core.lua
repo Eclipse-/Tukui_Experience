@@ -11,7 +11,7 @@ local Config = {
 	style = "MONOCHROMEOUTLINE",
 	alignment = { "CENTER", 0, 1 },
 	shadow = true,
-	texture = unpack(T.Textures.statusBars) or C["media"].blank,
+	texture = C["media"].blank,
 	
 	colors = {
 		{ .67, 0, 0 }, 		-- Hated
